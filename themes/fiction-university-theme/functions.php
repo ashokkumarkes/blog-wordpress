@@ -18,7 +18,6 @@
     add_action('after_setup_theme','university_features');
    
     function get_breadcrumb() {
-        
         echo '<a href="'.home_url().'" rel="nofollow">Home</a>';
         if (is_single()) {
             echo "&nbsp;&nbsp;&#187;&nbsp;&nbsp;";
@@ -28,7 +27,6 @@
                     echo the_title();
                 }
         } elseif (is_page()) {
-           
             echo "&nbsp;&nbsp;&#187;&nbsp;&nbsp;";
             echo the_title();
         } elseif (is_search()) {
@@ -38,9 +36,9 @@
             echo '</em>"';
         }
     }
-    function latest_post_old(WP_REST_Request $request){
+    function latest_post(WP_REST_Request $request){
         $get_params = $request->get_params();
-        $args = array(
+        $args_old = array(
             'post_type'         => 'blog',
             'post_status'       => 'publish',
             'meta_key'			=> 'published_date',
@@ -48,8 +46,28 @@
             'order' 			=> 'DESC',
             'post_per_page' 	=> '6'
         );
-        $media = new WP_Query($args);
-        print_r($media);
+        // $media = new WP_Query($args);
+        // print_r($media);
+            $args = array(
+                'category' => $request['category_id']
+        );
+
+        // $posts = get_posts($args);
+        $posts =  get_categories( array(
+            'orderby' => 'name',
+            'order'   => 'ASC'
+        ) );
+        
+        print_r($posts);
+        exit;
+        if (empty($posts)) {
+        return new WP_Error( 'empty_category', 'there is no post in this category', array('status' => 404) );
+
+        }
+
+        $response = new WP_REST_Response($posts);
+        $response->set_status(200);
+        return $response;
     }
     // It is online web exam application which is develop in wordpress
     
@@ -57,15 +75,15 @@
     //     $request->set_query_params(array(
     //         'post_type'=>'blog',
     //         'per_page' => 1
-    //     ));
+    // ));
         
-        // function mediaArchive_list() {
-        //     register_rest_route( 'latest_post/v1', '/post/', array(
-        //         'methods' => 'GET',
-        //         'callback' => 'latest_post',
-        //     ) );
-        // }
-        add_action( 'rest_api_init', 'latest_post' );
+        function mediaArchive_list() {
+            register_rest_route( 'latest_post/v1', '/post/', array(
+                'methods' => 'GET',
+                'callback' => 'latest_post',
+            ) );
+        }
+        add_action( 'rest_api_init', 'mediaArchive_list' );
         
 
 ?>
